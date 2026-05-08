@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { HoverEffect } from "./aceternity/hover-effect"
-import { Database, Server, Cloud, Users, CheckCircle2, ShieldCheck, MapPin, Mail, Phone, Clock } from "lucide-react"
+import { Database, Server, Cloud, Users, CheckCircle2, ShieldCheck, MapPin, Clock } from "lucide-react"
 
 export default function About() {
   const containerVariants = {
@@ -76,21 +76,9 @@ export default function About() {
 
           <motion.div variants={itemVariants}>
             <h3 className="text-2xl font-bold mb-8 text-white uppercase tracking-wide text-sm">Quick Info</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-2 gap-4 max-w-sm">
               {[
                 { label: "Ubicación", value: "Colombia", icon: <MapPin size={24} strokeWidth={1.5} /> },
-                {
-                  label: "Email",
-                  value: "omrodriguezr@gmail.com",
-                  link: "mailto:omrodriguezr@gmail.com",
-                  icon: <Mail size={24} strokeWidth={1.5} />,
-                },
-                {
-                  label: "Teléfono",
-                  value: "+57 3005535689",
-                  link: "tel:+573005535689",
-                  icon: <Phone size={24} strokeWidth={1.5} />,
-                },
                 { label: "Experiencia", value: "20+ Años", icon: <Clock size={24} strokeWidth={1.5} /> },
               ].map((item, idx) => (
                 <motion.div

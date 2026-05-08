@@ -32,10 +32,10 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <a
-                  href="mailto:omrodriguezr@gmail.com"
+                  href="#contact"
                   className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:rounded px-1"
                 >
-                  omrodriguezr@gmail.com
+                  Formulario de contacto
                 </a>
               </li>
               <li>
@@ -47,14 +47,6 @@ export default function Footer() {
                   aria-label="LinkedIn (abre en nueva ventana)"
                 >
                   LinkedIn
-                </a>
-              </li>
-              <li>
-                <a
-                  href="tel:+573005535689"
-                  className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:rounded px-1"
-                >
-                  +57 300 553 5689
                 </a>
               </li>
             </ul>

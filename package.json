@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
+    "@hookform/resolvers": "^5.2.2",
     "@vercel/analytics": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -18,8 +19,11 @@
     "next": "^15.5.15",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.75.0",
+    "resend": "^6.12.3",
     "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.9",

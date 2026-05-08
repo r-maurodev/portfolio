@@ -1,53 +1,55 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
-import { Mail, Linkedin, Phone, ExternalLink } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Send, CheckCircle2, AlertCircle, Linkedin } from "lucide-react"
+
+const schema = z.object({
+  name: z.string().min(2, "Mínimo 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  company: z.string().optional(),
+  message: z.string().min(10, "Mínimo 10 caracteres"),
+})
+
+type FormData = z.infer<typeof schema>
 
 export default function Contact() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
-  }
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-  }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({ resolver: zodResolver(schema) })
 
-  const contactMethods = [
-    {
-      icon: Mail,
-      label: "Email",
-      value: "omrodriguezr@gmail.com",
-      href: "mailto:omrodriguezr@gmail.com",
-      color: "from-red-500 to-pink-500",
-    },
-    {
-      icon: Linkedin,
-      label: "LinkedIn",
-      value: "Ver Perfil",
-      href: "https://www.linkedin.com/in/mauricio-rodriguez-it-leader-senior-developer",
-      color: "from-blue-500 to-cyan-500",
-      external: true,
-    },
-    {
-      icon: Phone,
-      label: "Teléfono",
-      value: "+57 300 553 5689",
-      href: "tel:+573005535689",
-      color: "from-emerald-500 to-teal-500",
-    },
-  ]
+  const onSubmit = async (data: FormData) => {
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error()
+      setStatus("success")
+      reset()
+    } catch {
+      setStatus("error")
+    }
+  }
 
   return (
     <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-secondary/20">
-      <div className="max-w-4xl mx-auto text-center">
+      <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-16"
+          className="mb-12 text-center"
         >
           <h2 className="text-5xl md:text-6xl font-bold mb-6 text-balance">
             Hablemos{" "}
@@ -56,47 +58,118 @@ export default function Contact() {
             </span>
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-primary to-accent rounded-full mx-auto mb-6" />
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Abierto a conversaciones sobre roles de liderazgo técnico, arquitectura de sistemas, consultoría o
-            proyectos de desarrollo backend de alto impacto.
+          <p className="text-lg text-muted-foreground">
+            Abierto a roles de liderazgo técnico, arquitectura de sistemas, consultoría o proyectos de desarrollo backend.
           </p>
         </motion.div>
 
         <motion.div
-          className="grid md:grid-cols-3 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
         >
-          {contactMethods.map((method) => {
-            const Icon = method.icon
-            return (
-              <motion.div
-                key={method.label}
-                variants={itemVariants}
-                className="p-6 bg-card rounded-lg border border-border hover:border-primary transition-all hover:shadow-lg h-full"
-                whileHover={{ y: -8 }}
+          {status === "success" ? (
+            <div className="flex flex-col items-center gap-4 py-16 text-center">
+              <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+              <h3 className="text-2xl font-bold text-foreground">¡Mensaje enviado!</h3>
+              <p className="text-muted-foreground">Te responderé a la brevedad.</p>
+              <button
+                onClick={() => setStatus("idle")}
+                className="mt-4 text-sm text-primary hover:underline"
               >
-                <div
-                  className={`w-12 h-12 rounded-lg bg-gradient-to-br ${method.color} flex items-center justify-center mx-auto mb-4`}
-                >
-                  <Icon className="w-6 h-6 text-white" aria-hidden="true" />
+                Enviar otro mensaje
+              </button>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-5 bg-card border border-border rounded-xl p-8"
+            >
+              <div className="grid sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    Nombre <span className="text-primary">*</span>
+                  </label>
+                  <input
+                    {...register("name")}
+                    placeholder="Tu nombre"
+                    className="w-full px-4 py-2.5 rounded-lg bg-input border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm"
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>
+                  )}
                 </div>
-                <h3 className="font-bold mb-3 text-foreground">{method.label}</h3>
-                <a
-                  href={method.href}
-                  target={method.external ? "_blank" : undefined}
-                  rel={method.external ? "noopener noreferrer" : undefined}
-                  className="text-primary hover:underline text-sm flex items-center justify-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary focus:rounded"
-                  aria-label={method.external ? `${method.label} (abre en nueva ventana)` : undefined}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    Email <span className="text-primary">*</span>
+                  </label>
+                  <input
+                    {...register("email")}
+                    type="email"
+                    placeholder="tu@email.com"
+                    className="w-full px-4 py-2.5 rounded-lg bg-input border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Empresa <span className="text-muted-foreground text-xs">(opcional)</span>
+                </label>
+                <input
+                  {...register("company")}
+                  placeholder="Nombre de tu empresa o proyecto"
+                  className="w-full px-4 py-2.5 rounded-lg bg-input border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Mensaje <span className="text-primary">*</span>
+                </label>
+                <textarea
+                  {...register("message")}
+                  rows={5}
+                  placeholder="Contame sobre tu proyecto o propuesta..."
+                  className="w-full px-4 py-2.5 rounded-lg bg-input border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm resize-none"
+                />
+                {errors.message && (
+                  <p className="mt-1 text-xs text-destructive">{errors.message.message}</p>
+                )}
+              </div>
+
+              {status === "error" && (
+                <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-lg">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  Error al enviar. Intentá de nuevo o escribime por LinkedIn.
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity text-sm"
                 >
-                  {method.value}
-                  {method.external && <ExternalLink className="w-3 h-3" aria-hidden="true" />}
+                  <Send className="w-4 h-4" />
+                  {isSubmitting ? "Enviando..." : "Enviar mensaje"}
+                </button>
+                <a
+                  href="https://www.linkedin.com/in/mauricio-rodriguez-it-leader-senior-developer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Linkedin className="w-4 h-4" />
+                  Conectar por LinkedIn
                 </a>
-              </motion.div>
-            )
-          })}
+              </div>
+            </form>
+          )}
         </motion.div>
       </div>
     </section>

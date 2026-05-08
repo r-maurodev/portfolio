@@ -74,8 +74,6 @@ export default function RootLayout({
               name: "Oscar Mauricio Rodriguez",
               url: "https://mauricio.dev",
               jobTitle: "Senior Software Engineer & Tech Lead",
-              email: "omrodriguezr@gmail.com",
-              telephone: "+573005535689",
               address: { "@type": "PostalAddress", addressCountry: "CO" },
               sameAs: ["https://www.linkedin.com/in/mauricio-rodriguez-it-leader-senior-developer"],
               knowsAbout: ["Golang", "Java", "Python", "Oracle", "Docker", "Kubernetes", "DevOps", "DDD"],

@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Send, CheckCircle2, AlertCircle, Linkedin } from "lucide-react"
+import HCaptcha from "@hcaptcha/react-hcaptcha"
 
 const schema = z.object({
   name: z.string().min(2, "Mínimo 2 caracteres"),
@@ -16,8 +17,14 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+// Web3Forms sitekey para hCaptcha (proporcionado por Web3Forms)
+const HCAPTCHA_SITE_KEY = "50b2fe65-b00b-4b9e-ad62-3ba471098be2"
+
 export default function Contact() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaError, setCaptchaError] = useState(false)
+  const captchaRef = useRef<HCaptcha>(null)
 
   const {
     register,
@@ -27,17 +34,41 @@ export default function Contact() {
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   const onSubmit = async (data: FormData) => {
+    if (!captchaToken) {
+      setCaptchaError(true)
+      return
+    }
+    setCaptchaError(false)
+
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_KEY,
+          name: data.name,
+          email: data.email,
+          company: data.company ?? "",
+          message: data.message,
+          "h-captcha-response": captchaToken,
+          subject: `Nuevo contacto: ${data.name}${data.company ? ` — ${data.company}` : ""}`,
+          from_name: "Portfolio MR",
+        }),
       })
-      if (!res.ok) throw new Error()
-      setStatus("success")
-      reset()
+
+      const result = await res.json()
+      if (result.success) {
+        setStatus("success")
+        reset()
+        setCaptchaToken(null)
+        captchaRef.current?.resetCaptcha()
+      } else {
+        throw new Error(result.message)
+      }
     } catch {
       setStatus("error")
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken(null)
     }
   }
 
@@ -86,6 +117,7 @@ export default function Contact() {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-5 bg-card border border-border rounded-xl p-8"
             >
+              {/* Nombre + Email */}
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -116,6 +148,7 @@ export default function Contact() {
                 </div>
               </div>
 
+              {/* Empresa */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
                   Empresa <span className="text-muted-foreground text-xs">(opcional)</span>
@@ -127,6 +160,7 @@ export default function Contact() {
                 />
               </div>
 
+              {/* Mensaje */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
                   Mensaje <span className="text-primary">*</span>
@@ -142,6 +176,24 @@ export default function Contact() {
                 )}
               </div>
 
+              {/* hCaptcha */}
+              <div className="flex flex-col gap-1">
+                <HCaptcha
+                  ref={captchaRef}
+                  sitekey={HCAPTCHA_SITE_KEY}
+                  onVerify={(token) => {
+                    setCaptchaToken(token)
+                    setCaptchaError(false)
+                  }}
+                  onExpire={() => setCaptchaToken(null)}
+                  theme="dark"
+                />
+                {captchaError && (
+                  <p className="text-xs text-destructive">Por favor completá el captcha</p>
+                )}
+              </div>
+
+              {/* Error de envío */}
               {status === "error" && (
                 <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-3 rounded-lg">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -149,6 +201,7 @@ export default function Contact() {
                 </div>
               )}
 
+              {/* Acciones */}
               <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
                 <button
                   type="submit"
